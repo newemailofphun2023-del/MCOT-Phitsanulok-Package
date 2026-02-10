@@ -1,0 +1,5 @@
+{
+  "name": "MCOT Phitsanulok Package Manager",
+  "description": "A comprehensive package management system for MCOT Phitsanulok FM 106.25 MHz, featuring customer CRM, product management, automated price calculation with complex discounts, and professional quotation generation.",
+  "requestFramePermissions": []
+}
