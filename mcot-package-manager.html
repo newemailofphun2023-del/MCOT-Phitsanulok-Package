@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCOT Phitsanulok Package Manager</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Prompt', sans-serif;
+        }
+        
+        .mcot-gradient {
+            background: linear-gradient(135deg, #0d3b66 0%, #1c5bb8 100%);
+        }
+        
+        .gold-border {
+            border-color: #f9a826;
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            body {
+                background: white !important;
+                font-size: 12pt;
+            }
+            
+            .print-only {
+                display: block !important;
+            }
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .time-slot-btn {
+            transition: all 0.2s;
+        }
+        
+        .time-slot-btn.selected {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+        
+        .weekday-btn {
+            transition: all 0.2s;
+        }
+        
+        .weekday-btn.selected {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .order-type-btn.active {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            color: #2563eb;
+        }
+        
+        .duration-mode-btn.active {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            color: #2563eb;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .mobile-full {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding: 1rem !important;
+            }
+            
+            .mobile-text-lg {
+                font-size: 1.125rem !important;
+            }
+            
+            .mobile-text-base {
+                font-size: 1rem !important;
+            }
+            
+            .mobile-p-4 {
+                padding: 1rem !important;
+            }
+            
+            .mobile-p-2 {
+                padding: 0.5rem !important;
+            }
+            
+            .mobile-w-full {
+                width: 100% !important;
+            }
+        }
+        
+        /* Mobile Menu Overlay */
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+        
+        .mobile-menu-open {
+            display: block;
+        }
+        
+        /* Table Responsive */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Mobile Menu Button -->
+    <div class="lg:hidden fixed top-4 left-4 z-40">
+        <button id="mobile-menu-btn" class="bg-[#1c5bb8] text-white p-3 rounded-xl shadow-lg">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+    </div>
+    
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu-overlay" class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
+    
+    <!-- Navigation Sidebar -->
+    <div id="sidebar" class="fixed left-0 top-0 h-screen w-64 mcot-gradient text-white z-50 no-print lg:block hidden transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
+        <div class="p-4 lg:p-6 flex flex-col items-center border-b border-white/10">
+            <div class="bg-white p-2 lg:p-3 rounded-2xl mb-3 lg:mb-4 shadow-xl">
+                <i class="fas fa-broadcast-tower text-[#1c5bb8] text-3xl lg:text-4xl"></i>
+            </div>
+            <h1 class="text-base lg:text-lg font-bold text-center leading-tight">MCOT Package</h1>
+            <p class="text-xs opacity-70 mt-1">FM 106.25 Phitsanulok</p>
+        </div>
+        
+        <nav class="flex-1 py-4 overflow-y-auto">
+            <button onclick="switchTab('customers'); closeMobileMenu();" class="tab-btn w-full flex items-center px-4 lg:px-6 py-3 transition-colors relative group border-l-4" data-tab="customers">
+                <i class="fas fa-users w-5 text-center text-base lg:text-lg"></i>
+                <span class="ml-3 lg:ml-4 text-sm lg:text-base font-medium">ลูกค้า</span>
+                <span id="customer-badge" class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold hidden">0</span>
+            </button>
+            
+            <button onclick="switchTab('products'); closeMobileMenu();" class="tab-btn w-full flex items-center px-4 lg:px-6 py-3 transition-colors relative group border-l-4" data-tab="products">
+                <i class="fas fa-box w-5 text-center text-base lg:text-lg"></i>
+                <span class="ml-3 lg:ml-4 text-sm lg:text-base font-medium">สินค้า</span>
+            </button>
+            
+            <button onclick="switchTab('packages'); closeMobileMenu();" class="tab-btn w-full flex items-center px-4 lg:px-6 py-3 transition-colors relative group border-l-4" data-tab="packages">
+                <i class="fas fa-boxes w-5 text-center text-base lg:text-lg"></i>
+                <span class="ml-3 lg:ml-4 text-sm lg:text-base font-medium">แพ็กเกจ</span>
+            </button>
+            
+            <button onclick="switchTab('orders'); closeMobileMenu();" class="tab-btn w-full flex items-center px-4 lg:px-6 py-3 transition-colors relative group border-l-4" data-tab="orders">
+                <i class="fas fa-shopping-cart w-5 text-center text-base lg:text-lg"></i>
+                <span class="ml-3 lg:ml-4 text-sm lg:text-base font-medium">รายการสั่งซื้อ</span>
+                <span id="order-badge" class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold hidden">0</span>
+            </button>
+            
+            <button onclick="switchTab('quotations'); closeMobileMenu();" class="tab-btn w-full flex items-center px-4 lg:px-6 py-3 transition-colors relative group border-l-4" data-tab="quotations">
+                <i class="fas fa-file-invoice-dollar w-5 text-center text-base lg:text-lg"></i>
+                <span class="ml-3 lg:ml-4 text-sm lg:text-base font-medium">ใบเสนอราคา</span>
+            </button>
+        </nav>
+        
+        <div class="p-3 lg:p-4 border-t border-white/10 space-y-2 bg-black/10">
+            <p class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1 px-1">คำสั่งหลัก</p>
+            <button onclick="saveData()" class="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg text-sm font-semibold shadow-md transition-all active:scale-95">
+                <i class="fas fa-save text-sm"></i> <span class="mobile-text-base">บันทึก</span>
+            </button>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="exportData()" class="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-400 text-white py-2 rounded-lg text-xs font-semibold shadow-md transition-all active:scale-95">
+                    <i class="fas fa-download text-sm"></i> <span class="mobile-text-base">ส่งออก</span>
+                </button>
+                <button onclick="document.getElementById('import-file').click()" class="flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white py-2 rounded-lg text-xs font-semibold shadow-md transition-all active:scale-95">
+                    <i class="fas fa-upload text-sm"></i> <span class="mobile-text-base">นำเข้า</span>
+                </button>
+                <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)">
+            </div>
+            
+            <button onclick="clearData()" class="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-lg text-xs font-semibold shadow-md transition-all active:scale-95">
+                <i class="fas fa-trash text-sm"></i> <span class="mobile-text-base">ล้างข้อมูลทั้งหมด</span>
+            </button>
+            
+            <div class="pt-2">
+                <p class="text-[10px] text-center text-white/50 font-medium leading-relaxed">
+                    By Suraphun Inopas@2026 V4.0
+                </p>
+            </div>
+        </div>
+        
+        <!-- Close Mobile Menu Button -->
+        <div class="lg:hidden p-4 border-t border-white/10">
+            <button onclick="closeMobileMenu()" class="w-full flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg text-sm font-semibold">
+                <i class="fas fa-times text-sm"></i> ปิดเมนู
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main id="main-content" class="lg:ml-64 p-4 lg:p-8 xl:p-12 transition-all min-h-screen mobile-full">
+        <header class="mb-6 lg:mb-10 no-print">
+            <div class="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-4">
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">MCOT Phitsanulok FM 106.25</p>
+                    <h1 id="page-title" class="text-2xl lg:text-4xl font-black text-slate-900 tracking-tight capitalize mobile-text-lg">ระบบจัดการแพ็กเกจ</h1>
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono text-right italic">
+                    Last saved: <span id="last-saved">ไม่เคยบันทึก</span>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Customers Tab -->
+        <div id="customers-tab" class="tab-content animate-fadeIn hidden">
+            <div class="space-y-6 lg:space-y-8">
+                <!-- Customer List -->
+                <div class="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 lg:p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
+                                <i class="fas fa-briefcase text-xl"></i>
+                            </div>
+                            <h2 class="text-lg lg:text-xl font-bold">รายชื่อลูกค้า (<span id="customer-count">0</span>)</h2>
+                        </div>
+                        <div class="relative w-full md:w-64">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="customer-search" placeholder="ค้นหาชื่อหรือบริษัท..." class="w-full pl-10 pr-4 py-2 bg-white rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">บริษัท / ผู้ติดต่อ</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ประเภท</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">การติดต่อ</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customer-list" class="divide-y divide-slate-100">
+                                <!-- Customer rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Add Customer Form -->
+                <div class="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 lg:p-6 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
+                        <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
+                            <i class="fas fa-user-plus text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg lg:text-xl font-bold">เพิ่มลูกค้าใหม่</h2>
+                            <p class="text-sm text-slate-500">กรอกข้อมูลผู้ติดต่อและบริษัทเพื่อเริ่มการเสนอราคา</p>
+                        </div>
+                    </div>
+                    
+                    <form id="add-customer-form" class="p-4 lg:p-8 space-y-4 lg:space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-semibold text-slate-700">ชื่อองค์กร <span class="text-red-500">*</span></label>
+                                <input type="text" id="customer-company" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100" placeholder="ชื่อบริษัท/หน่วยงาน" required>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-semibold text-slate-700">ประเภทองค์กร</label>
+                                <select id="customer-type" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100">
+                                    <option value="เอกชน">เอกชน</option>
+                                    <option value="ราชการ">ราชการ</option>
+                                    <option value="รัฐวิสาหกิจ">รัฐวิสาหกิจ</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-semibold text-slate-700">หมวดหมู่ธุรกิจ</label>
+                                <input type="text" id="customer-category" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100" placeholder="เช่น อาหาร, ก่อสร้าง">
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                <i class="fas fa-map-marker-alt text-blue-500"></i> ที่อยู่หน่วยงาน
+                            </label>
+                            <textarea id="customer-address" class="w-full px-3 lg:px-4 py-2 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100 h-24 lg:h-20 resize-none" placeholder="บ้านเลขที่, ถนน, ตำบล, อำเภอ, จังหวัด..."></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-semibold text-slate-700">ชื่อผู้ติดต่อ <span class="text-red-500">*</span></label>
+                                <input type="text" id="customer-name" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100" placeholder="คุณ..." required>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-semibold text-slate-700">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
+                                <input type="tel" id="customer-phone" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100" placeholder="0xx-xxxxxxx" required>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-semibold text-slate-700">อีเมล</label>
+                                <input type="email" id="customer-email" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100" placeholder="example@mail.com">
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end pt-2">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 lg:px-8 py-2.5 lg:py-3 rounded-lg lg:rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center gap-2 mobile-w-full lg:w-auto">
+                                <i class="fas fa-user-plus"></i> บันทึกข้อมูลลูกค้า
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Products Tab -->
+        <div id="products-tab" class="tab-content animate-fadeIn hidden">
+            <div class="space-y-6 lg:space-y-8">
+                <!-- Product List -->
+                <div class="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 lg:p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
+                                <i class="fas fa-box text-xl"></i>
+                            </div>
+                            <h2 class="text-lg lg:text-xl font-bold">รายการสินค้า (<span id="product-count">0</span>)</h2>
+                        </div>
+                        <div class="relative w-full md:w-64">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="product-search" placeholder="ค้นหาสินค้า..." class="w-full pl-10 pr-4 py-2 bg-white rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-12 text-center">ลำดับ</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">รหัสสินค้า</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">สินค้า</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ประเภท</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ราคา</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="product-list" class="divide-y divide-slate-100">
+                                <!-- Product rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Add/Edit Product Form -->
+                <div id="product-form-container" class="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 lg:p-6 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
+                        <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
+                            <i id="product-form-icon" class="fas fa-plus text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 id="product-form-title" class="text-lg lg:text-xl font-bold">เพิ่มสินค้าใหม่</h2>
+                            <p class="text-sm text-slate-500">เพิ่มสินค้าและบริการสำหรับการเสนอราคา</p>
+                        </div>
+                    </div>
+                    
+                    <form id="add-product-form" class="p-4 lg:p-8 space-y-4 lg:space-y-6">
+                        <input type="hidden" id="product-id" value="">
+                        <input type="hidden" id="product-code-prefix" value="">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-semibold text-slate-700">ประเภทสินค้า <span class="text-red-500">*</span></label>
+                                <select id="product-type" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100" onchange="updateProductCode()">
+                                    <option value="">-- เลือกประเภท --</option>
+                                    <option value="onAir">On Air (ออกอากาศ)</option>
+                                    <option value="online">Online (ออนไลน์)</option>
+                                    <option value="production">Production (ผลิต)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-semibold text-slate-700">รหัสสินค้า</label>
+                                <input type="text" id="product-code" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-semibold text-slate-700">ชื่อสินค้า <span class="text-red-500">*</span></label>
+                                <input type="text" id="product-name" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100" placeholder="ชื่อสินค้าหรือบริการ" required>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-semibold text-slate-700">ราคา (บาท) <span class="text-red-500">*</span></label>
+                                <input type="number" id="product-price" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100" placeholder="0.00" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-semibold text-slate-700">โปรโมชัน</label>
+                                <select id="product-promotion" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100">
+                                    <option value="ไม่มี">ไม่มีโปรโมชัน</option>
+                                    <option value="มี">มีโปรโมชัน</option>
+                                </select>
+                            </div>
+                            <div id="promotion-detail-container" class="space-y-1.5 hidden">
+                                <label class="text-sm font-semibold text-slate-700">รายละเอียดโปรโมชัน</label>
+                                <input type="text" id="product-promotion-detail" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100" placeholder="เช่น ซื้อ 10 ครั้ง แถม 1 ครั้ง">
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-semibold text-slate-700">หมายเหตุเพิ่มเติม</label>
+                            <textarea id="product-note" class="w-full px-3 lg:px-4 py-2 rounded-lg lg:rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-100 h-24 lg:h-20 resize-none" placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับสินค้า..."></textarea>
+                        </div>
+                        
+                        <div class="flex flex-col lg:flex-row justify-end gap-3 pt-2">
+                            <button type="button" id="cancel-edit-btn" onclick="resetProductForm()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2.5 rounded-lg font-bold shadow-lg transition-all hidden mobile-w-full lg:w-auto">
+                                ยกเลิกการแก้ไข
+                            </button>
+                            <button type="submit" id="submit-product-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 lg:px-8 py-2.5 lg:py-3 rounded-lg lg:rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 mobile-w-full lg:w-auto">
+                                <i class="fas fa-plus"></i> เพิ่มสินค้า
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Packages Tab -->
+        <div id="packages-tab" class="tab-content animate-fadeIn hidden">
+            <div class="space-y-6 lg:space-y-8">
+                <div class="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 lg:p-6 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-boxes text-blue-600 text-xl"></i>
+                            <h2 class="text-lg lg:text-xl font-bold">แพ็กเกจสินค้า</h2>
+                        </div>
+                        <button onclick="showPackageForm()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 lg:px-6 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95 mobile-w-full lg:w-auto">
+                            <i class="fas fa-plus"></i> สร้างแพ็กเกจใหม่
+                        </button>
+                    </div>
+                    <div class="p-8 lg:p-12 text-center text-slate-400">
+                        <i class="fas fa-boxes text-4xl lg:text-6xl opacity-20 mb-4"></i>
+                        <p class="text-lg lg:text-xl font-medium mb-2">ฟีเจอร์แพ็กเกจอยู่ระหว่างการพัฒนา</p>
+                        <p class="text-sm lg:text-base">สามารถใช้ระบบสินค้าและรายการสั่งซื้อได้ตามปกติ</p>
+                        <p class="text-xs lg:text-sm mt-4 text-slate-500">เวอร์ชั่นต่อไปจะเพิ่มฟีเจอร์การสร้างแพ็กเกจสินค้าแบบผสม</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Orders Tab - COMPLETE VERSION -->
+        <div id="orders-tab" class="tab-content animate-fadeIn hidden">
+            <div class="space-y-6 lg:space-y-8">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+                    <!-- Left Column: Order Configuration -->
+                    <div class="xl:col-span-2 space-y-6 lg:space-y-8">
+                        <div class="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="p-4 lg:p-6 border-b border-slate-100 flex items-center gap-3 bg-slate-50">
+                                <i class="fas fa-plus text-blue-600 text-xl"></i>
+                                <h2 class="text-lg lg:text-xl font-bold">สร้างรายการสั่งซื้อใหม่</h2>
+                            </div>
+                            
+                            <div class="p-4 lg:p-8 space-y-6 lg:space-y-8">
+                                <!-- Customer Selection -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 items-end">
+                                    <div class="space-y-1.5">
+                                        <label class="text-sm font-semibold text-slate-700">เลือกลูกค้า</label>
+                                        <select id="order-customer" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-100 transition-all">
+                                            <option value="">-- เลือกลูกค้า --</option>
+                                            <!-- Customers will be populated here -->
+                                        </select>
+                                    </div>
+                                    <div id="customer-type-display" class="space-y-1.5 hidden">
+                                        <div class="flex items-center gap-2 p-3 bg-blue-50 rounded-lg lg:rounded-xl border border-blue-100">
+                                            <i class="fas fa-building text-blue-500"></i>
+                                            <div>
+                                                <p class="text-[10px] text-blue-400 uppercase font-black tracking-widest">ประเภทองค์กรอัตโนมัติ</p>
+                                                <p id="selected-customer-type" class="text-sm font-bold text-blue-900"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Order Type & Product Selection -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                                    <div class="space-y-1.5">
+                                        <label class="text-sm font-semibold text-slate-700">ประเภทรายการ</label>
+                                        <div class="grid grid-cols-3 gap-2 p-1 bg-slate-100 rounded-lg lg:rounded-xl">
+                                            <button type="button" onclick="setOrderType('Produce')" id="order-type-produce" class="order-type-btn py-2 text-xs font-bold rounded-lg transition-all active">
+                                                Produce
+                                            </button>
+                                            <button type="button" onclick="setOrderType('Package')" id="order-type-package" class="order-type-btn py-2 text-xs font-bold rounded-lg transition-all">
+                                                Package
+                                            </button>
+                                            <button type="button" onclick="setOrderType('Production')" id="order-type-production" class="order-type-btn py-2 text-xs font-bold rounded-lg transition-all">
+                                                Production
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label class="text-sm font-semibold text-slate-700">สินค้า / บริการ</label>
+                                        <select id="order-product" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-100 transition-all">
+                                            <option value="">-- เลือกรายการ --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Time Slots -->
+                                <div class="space-y-3">
+                                    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-2">
+                                        <label class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                            <i class="fas fa-clock text-blue-500"></i> ช่วงเวลาออกอากาศ
+                                        </label>
+                                        <span id="selected-slots-count" class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                                            เลือกแล้ว: 0 ครั้ง/วัน
+                                        </span>
+                                    </div>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2" id="time-slots-container">
+                                        <!-- Time slots will be generated here -->
+                                    </div>
+                                </div>
+
+                                <!-- Duration & Dates -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 pt-4 border-t border-slate-100">
+                                    <div class="space-y-4">
+                                        <label class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                            <i class="fas fa-calendar text-blue-500"></i> ระยะเวลาออกอากาศ
+                                        </label>
+                                        
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div class="space-y-1">
+                                                <span class="text-[10px] text-slate-400 uppercase font-bold">วันเริ่ม</span>
+                                                <input type="date" id="order-start-date" class="w-full px-3 py-2 rounded-lg lg:rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-slate-100">
+                                            </div>
+                                            <div class="space-y-1">
+                                                <span class="text-[10px] text-slate-400 uppercase font-bold">วันสิ้นสุด</span>
+                                                <input type="date" id="order-end-date" class="w-full px-3 py-2 rounded-lg lg:rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-slate-100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="space-y-4">
+                                        <div class="space-y-1.5">
+                                            <label class="text-sm font-semibold text-slate-700">วันออกอากาศในสัปดาห์</label>
+                                            <div class="flex flex-wrap gap-2" id="weekdays-container">
+                                                <!-- Weekdays will be generated here -->
+                                            </div>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="text-sm font-semibold text-slate-700">การชำระเงิน</label>
+                                            <select id="order-payment-type" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-100 transition-all">
+                                                <option value="หลังออกอากาศ">ชำระหลังออกอากาศ</option>
+                                                <option value="ก่อนออกอากาศ">ชำระก่อนออกอากาศ (ลดเพิ่ม 5%)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Note -->
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-semibold text-slate-700">หมายเหตุ/ข้อความแถม</label>
+                                    <textarea id="order-note" class="w-full px-3 lg:px-4 py-2 lg:py-3 rounded-lg lg:rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-slate-100" placeholder="ระบุข้อความแถม..." rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column: Calculation Summary -->
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden lg:sticky lg:top-8">
+                            <div class="p-4 lg:p-6 border-b border-slate-100 flex items-center gap-3 bg-slate-50">
+                                <i class="fas fa-calculator text-emerald-600 text-xl"></i>
+                                <h2 class="text-lg lg:text-xl font-bold">สรุปการคำนวณ</h2>
+                            </div>
+                            
+                            <div class="p-4 lg:p-6 space-y-4" id="calculation-summary">
+                                <div class="py-8 lg:py-12 flex flex-col items-center justify-center text-slate-300 gap-3 text-center">
+                                    <i class="fas fa-calculator text-3xl lg:text-4xl opacity-20"></i>
+                                    <p class="text-xs">ระบุข้อมูลลูกค้า วันออกอากาศ<br/>และเลือกสินค้าเพื่อคำนวณราคา</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Campaign Summary -->
+                        <div class="bg-blue-900 rounded-xl lg:rounded-2xl p-4 lg:p-6 text-white shadow-xl border-l-4 border-yellow-500">
+                            <h3 class="text-xs font-bold opacity-70 uppercase tracking-widest mb-4">ยอดรวมแคมเปญปัจจุบัน</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm">
+                                    <span>ราคารวมทั้งหมด:</span>
+                                    <span id="campaign-total" class="font-mono">0 ฿</span>
+                                </div>
+                                <div class="flex justify-between text-sm text-emerald-400">
+                                    <span>ส่วนลดรวมสะสม:</span>
+                                    <span id="campaign-discount" class="font-mono">0 ฿</span>
+                                </div>
+                                <div class="pt-3 border-t border-white/10 flex justify-between items-center">
+                                    <span class="font-bold text-base lg:text-lg">สุทธิทั้งสิ้น:</span>
+                                    <span id="campaign-net" class="text-xl lg:text-2xl font-black">0 ฿</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Table -->
+                <div class="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 lg:p-6 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50">
+                        <h2 class="text-lg lg:text-xl font-bold">รายการสั่งซื้อในแคมเปญ (<span id="orders-count">0</span>)</h2>
+                    </div>
+                    <div class="table-container">
+                        <table class="w-full text-left border-collapse min-w-[1000px]">
+                            <thead class="bg-slate-100">
+                                <tr>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-[10px] font-bold text-slate-500 uppercase">สินค้า / บริการ</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-[10px] font-bold text-slate-500 uppercase text-center">จำนวนวัน</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-[10px] font-bold text-slate-500 uppercase text-center">ความถี่</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-[10px] font-bold text-slate-500 uppercase text-right">ส่วนลด</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-[10px] font-bold text-slate-500 uppercase text-right font-black">ยอดสุทธิ</th>
+                                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-[10px] font-bold text-slate-500 uppercase text-center">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body" class="divide-y divide-slate-100">
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center text-slate-400">ยังไม่มีรายการสั่งซื้อในแคมเปญนี้</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quotations Tab -->
+        <div id="quotations-tab" class="tab-content animate-fadeIn hidden">
+            <div class="space-y-6 lg:space-y-8">
+                <!-- Configuration -->
+                <div class="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden no-print">
+                    <div class="p-4 lg:p-6 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-file-invoice-dollar text-blue-600 text-xl"></i>
+                            <h2 class="text-lg lg:text-xl font-bold">ตั้งค่าการออกเอกสาร</h2>
+                        </div>
+                        <button onclick="printQuotation()" id="print-quotation-btn" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 lg:px-6 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95 mobile-w-full lg:w-auto">
+                            <i class="fas fa-print"></i> พิมพ์ใบเสนอราคา
+                        </button>
+                    </div>
+                    <div class="p-4 lg:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-semibold text-slate-700">เลือกลูกค้า</label>
+                            <select id="quotation-customer" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-100">
+                                <option value="">-- เลือกลูกค้า --</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-semibold text-slate-700">ชื่อผู้เสนอราคา</label>
+                            <input type="text" id="staff-name" value="ฝ่ายขาย" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-100">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-semibold text-slate-700">เบอร์ติดต่อผู้ขาย</label>
+                            <input type="text" id="staff-phone" value="055-287833" class="w-full px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg lg:rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-100">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quotation Preview -->
+                <div id="quotation-preview" class="bg-white p-4 lg:p-6 xl:p-12 shadow-2xl rounded-sm border border-slate-200 max-w-5xl mx-auto text-slate-800 min-h-[1100px] flex flex-col font-['Sarabun'] hidden">
+                    <!-- Header -->
+                    <div class="flex flex-col items-center text-center border-b-4 border-slate-800 pb-4 lg:pb-6 mb-6 lg:mb-8">
+                        <h1 class="text-xl lg:text-2xl font-black text-blue-900 mb-1">MCOT Radio Network Phitsanulok</h1>
+                        <p class="text-base lg:text-lg font-bold">สถานีวิทยุกระจายเสียง อสมท จังหวัดพิษณุโลก F.M. 106.25 MHz.</p>
+                        <p class="text-sm">บมจ.อสมท สาขาพิษณุโลก 1 สาขาที่ 00010</p>
+                        <p class="text-sm">361/4 หมู่ที่ 2 ถนนบึงพระ-วัดหล่ม ต.บึงพระ อ.เมือง จ.พิษณุโลก 65000</p>
+                        <p class="text-sm font-bold mt-1">โทร. 055-287833 | เลขประจำตัวผู้เสียภาษี 0107547000745</p>
+                    </div>
+                    
+                    <!-- Customer Info -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-6 lg:mb-8 text-sm">
+                        <div class="space-y-1.5">
+                            <div class="flex">
+                                <span class="font-bold w-16 lg:w-20">เรียน:</span>
+                                <span id="quotation-company" class="font-black border-b border-dotted border-slate-400 flex-1"></span>
+                            </div>
+                            <div class="flex">
+                                <span class="font-bold w-16 lg:w-20">ที่อยู่:</span>
+                                <span id="quotation-address" class="border-b border-dotted border-slate-400 flex-1"></span>
+                            </div>
+                            <div class="flex">
+                                <span class="font-bold w-16 lg:w-20">เบอร์โทรศัพท์:</span>
+                                <span id="quotation-phone" class="border-b border-dotted border-slate-400 flex-1"></span>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5 flex flex-col items-end">
+                            <div class="flex w-full justify-end">
+                                <span class="font-bold mr-2">วันที่:</span>
+                                <span class="font-bold border-b border-dotted border-slate-400 w-40 text-center">
+                                    <span id="quotation-date"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Table -->
+                    <div class="flex-1 overflow-hidden mb-6 lg:mb-8">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs border-collapse min-w-[600px]">
+                                <thead>
+                                    <tr class="bg-slate-200 border-y-2 border-slate-800">
+                                        <th class="p-2 lg:p-3 text-left border-x border-slate-300">รายละเอียด</th>
+                                        <th class="p-2 lg:p-3 text-center border-x border-slate-300 w-16 lg:w-24">จำนวนวัน</th>
+                                        <th class="p-2 lg:p-3 text-center border-x border-slate-300 w-16 lg:w-20">ครั้ง/วัน</th>
+                                        <th class="p-2 lg:p-3 text-right border-x border-slate-300 w-20 lg:w-28">ครั้งรวม</th>
+                                        <th class="p-2 lg:p-3 text-right border-x border-slate-300 w-24 lg:w-32">ยอดสุทธิ (บาท)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="quotation-items">
+                                    <!-- Items will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Financial Summary -->
+                    <div class="mt-6 lg:mt-8 flex justify-end">
+                        <div class="w-full lg:w-80 space-y-1">
+                            <div class="flex justify-between text-sm py-1 border-b border-slate-100">
+                                <span class="font-bold">ยอดก่อน VAT รวม:</span>
+                                <span id="quotation-before-vat" class="font-black">0 บาท</span>
+                            </div>
+                            <div class="flex justify-between text-sm py-1 border-b border-slate-100">
+                                <span class="font-bold">VAT 7% รวม:</span>
+                                <span id="quotation-vat" class="font-black">0 บาท</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-slate-800 text-white p-3 rounded-lg mt-2 shadow-md">
+                                <span class="text-sm font-black">ยอดสุทธิรวม:</span>
+                                <span id="quotation-total" class="text-lg lg:text-xl font-black">0 บาท</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Details -->
+                    <div class="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-slate-300 text-xs">
+                        <h3 class="font-bold text-slate-800 mb-3 text-sm">รายละเอียดการชำระเงิน</h3>
+                        <div class="space-y-2">
+                            <p><strong>รัศมีการออกอากาศ:</strong> ครอบคลุมจังหวัดพิษณุโลก และเขตติดต่อ จังหวัดใกล้เคียงบางส่วน เช่น จังหวัดพิจิตร,สุโขทัย, อุตรดิตถ์ และเพชรบูรณ์</p>
+                            <p><strong>เงื่อนไข:</strong></p>
+                            <ul class="list-disc pl-5 ml-3 space-y-1">
+                                <li>ลูกค้ารายใหม่ชำระเงินก่อนออกอากาศ ในเวลาทำการ 09.00 น. – 15.00 น. (วันจันทร์ – วันศุกร์)</li>
+                                <li>ถ้าชำระหลัง เวลา 15.00 น. ถือว่าชำระในวันรุ่งขึ้น</li>
+                            </ul>
+                            <p><strong>รายละเอียดการชำระเงิน:</strong></p>
+                            <ul class="list-disc pl-5 ml-3 space-y-1">
+                                <li><strong>ชำระเป็นเช็ค:</strong> สั่งจ่ายในนาม บมจ.อสมท</li>
+                                <li><strong>โอนเงินเข้าบัญชี:</strong> บมจ. อสมท บัญชีเลขที่ 015-1-05842-3 ธนาคารกรุงไทย สาขาสิงห์คอมเพล็กซ์</li>
+                                <li><strong>ชำระเป็นเงินสด:</strong> ที่ฝ่ายการเงิน บมจ. อสมท สาขาพิษณุโลก 1 ในเวลาทำการ 09.00 น. – 15.00 น.</li>
+                                <li><strong>หนังสือรับรองการหักภาษี ณ ที่จ่าย ออกในนาม:</strong> บมจ.อสมท 63/1 ถ.พระราม 9 แขวงห้วยขวาง เขตห้วยขวาง กรุงเทพฯ 10310 เลขประจำตัวผู้เสียภาษี 0107547000745</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Proposer Signature -->
+                    <div class="mt-8 lg:mt-12 mb-8 lg:mb-12 flex justify-end">
+                        <div class="text-center w-56 lg:w-64 space-y-8 lg:space-y-12">
+                            <div class="border-b border-slate-300 pb-1">
+                                <p class="text-sm font-bold text-slate-800">ผู้เสนอราคา: <span id="quotation-staff-name">ฝ่ายขาย</span></p>
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-xs">(....................................................................)</p>
+                                <p class="text-xs font-bold text-slate-500">MCOT Radio Network Phitsanulok</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="quotation-empty" class="bg-white rounded-xl lg:rounded-2xl p-12 lg:p-24 text-center text-slate-400 border border-slate-200 shadow-sm flex flex-col items-center gap-4">
+                    <i class="fas fa-file-invoice-dollar text-4xl lg:text-6xl opacity-10"></i>
+                    <p class="text-base lg:text-lg font-medium">กรุณาเลือกลูกค้าเพื่อแสดงตัวอย่างใบเสนอราคา</p>
+                    <p class="text-sm">ใบเสนอราคาจะถูกสร้างขึ้นอัตโนมัติตามรายการที่เลือก</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ========== DATA STORAGE ==========
+        let systemData = {
+            customers: [],
+            products: [],
+            packages: [],
+            orders: [],
+            settings: {
+                lastSave: null,
+                version: "4.0"
+            }
+        };
+        
+        // ========== CONSTANTS ==========
+        const TIME_SLOTS = [
+            { period: 'ช่วงเช้า (08:00-10:00)', slots: ['08:00-08:30', '08:30-09:00', '09:00-09:30', '09:30-10:00'] },
+            { period: 'ช่วงสาย (10:00-12:00)', slots: ['10:00-10:30', '10:30-11:00', '11:00-11:30', '11:30-12:00'] },
+            { period: 'ช่วงเที่ยง (12:00-14:00)', slots: ['12:00-12:30', '12:30-13:00', '13:00-13:30', '13:30-14:00'] },
+            { period: 'ช่วงบ่าย (14:00-16:00)', slots: ['14:00-14:30', '14:30-15:00', '15:00-15:30', '15:30-16:00'] },
+            { period: 'ช่วงเย็น (16:00-18:00)', slots: ['16:00-16:30', '16:30-17:00', '17:00-17:30', '17:30-18:00'] }
+        ];
+        
+        const WEEKDAYS = [
+            { label: 'อา', value: 0 },
+            { label: 'จ', value: 1 },
+            { label: 'อ', value: 2 },
+            { label: 'พ', value: 3 },
+            { label: 'พฤ', value: 4 },
+            { label: 'ศ', value: 5 },
+            { label: 'ส', value: 6 }
+        ];
+        
+        // ========== PRODUCT CODE GENERATOR ==========
+        const productTypeCodes = {
+            'onAir': { prefix: 'OA', nextNumber: 1 },
+            'online': { prefix: 'OL', nextNumber: 1 },
+            'production': { prefix: 'Pr', nextNumber: 1 }
+        };
+        
+        // ========== ORDER SECTION STATE ==========
+        let currentOrder = {
+            selectedCustomerId: '',
+            orderType: 'Produce',
+            selectedItemId: '',
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: '',
+            selectedDays: [1, 2, 3, 4, 5], // Mon-Fri
+            selectedSlots: [],
+            paymentType: 'หลังออกอากาศ',
+            note: ''
+        };
+        
+        // ========== INITIALIZATION ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            setupEventListeners();
+            switchTab('customers');
+            updateBadges();
+            
+            // Auto-save every 30 seconds
+            setInterval(saveData, 30000);
+            
+            // Initialize orders tab
+            initializeOrdersTab();
+            
+            // Setup mobile menu
+            setupMobileMenu();
+            
+            // Check and update product code numbers
+            updateProductCodeNumbers();
+        });
+        
+        // ========== MOBILE MENU FUNCTIONS ==========
+        function setupMobileMenu() {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (mobileMenuBtn && mobileMenuOverlay && sidebar) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    sidebar.classList.remove('hidden');
+                    sidebar.classList.add('slide-in');
+                    sidebar.classList.remove('-translate-x-full');
+                    mobileMenuOverlay.classList.add('mobile-menu-open');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+        }
+        
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+            
+            if (sidebar && mobileMenuOverlay) {
+                sidebar.classList.add('-translate-x-full');
+                mobileMenuOverlay.classList.remove('mobile-menu-open');
+                document.body.style.overflow = 'auto';
+                
+                // Remove slide-in class after animation
+                setTimeout(() => {
+                    sidebar.classList.remove('slide-in');
+                }, 300);
+            }
+        }
+        
+        // ========== DATA MANAGEMENT ==========
+        function loadData() {
+            const saved = localStorage.getItem('mcot_package_v4_data');
+            if (saved) {
+                try {
+                    systemData = JSON.parse(saved);
+                    updateLastSaved();
+                    renderAll();
+                } catch (e) {
+                    console.error("Error loading data:", e);
+                    alert("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+                }
+            } else {
+                // Add sample data for testing
+                addSampleData();
+            }
+        }
+        
+        function addSampleData() {
+            // Sample customers
+            systemData.customers = [
+                {
+                    id: 'CUST-1',
+                    company: 'บริษัท เอเบซี จำกัด',
+                    type: 'เอกชน',
+                    category: 'อาหาร',
+                    address: '123 ถนนสุขุมวิท กรุงเทพฯ',
+                    name: 'คุณสมชาย ใจดี',
+                    position: 'ผู้จัดการ',
+                    phone: '081-2345678',
+                    email: 'somchai@abc.com',
+                    potential: 'กลาง',
+                    note: 'ลูกค้าประจำ',
+                    created: new Date().toISOString()
+                },
+                {
+                    id: 'CUST-2',
+                    company: 'โรงพยาบาลศิริราช',
+                    type: 'ราชการ',
+                    category: 'สาธารณสุข',
+                    address: '2 ถนนวังหลัง กรุงเทพฯ',
+                    name: 'นายแพทย์วิรัช เก่งมาก',
+                    position: 'ผู้อำนวยการ',
+                    phone: '02-1234567',
+                    email: 'doctor@siriraj.com',
+                    potential: 'สูง',
+                    note: 'ลูกค้าราชการ',
+                    created: new Date().toISOString()
+                },
+                {
+                    id: 'CUST-3',
+                    company: 'การไฟฟ้าส่วนภูมิภาค',
+                    type: 'รัฐวิสาหกิจ',
+                    category: 'พลังงาน',
+                    address: '2000 ถนนเพชรบุรี กรุงเทพฯ',
+                    name: 'คุณสมศรี สวยงาม',
+                    position: 'ผู้จัดการฝ่ายการตลาด',
+                    phone: '082-9876543',
+                    email: 'somsri@pea.com',
+                    potential: 'สูง',
+                    note: 'ลูกค้ารัฐวิสาหกิจ',
+                    created: new Date().toISOString()
+                }
+            ];
+            
+            // Update product code numbers based on existing products
+            updateProductCodeNumbers();
+            
+            // Sample products with codes
+            systemData.products = [
+                {
+                    id: 'PROD-1',
+                    code: 'OA-001',
+                    type: 'onAir',
+                    name: 'โฆษณาเสียง 30 วินาที',
+                    price: 1500,
+                    promotion: 'ไม่มี',
+                    note: 'ออกอากาศช่วงเวลาใดก็ได้',
+                    created: new Date().toISOString()
+                },
+                {
+                    id: 'PROD-2',
+                    code: 'OA-002',
+                    type: 'onAir',
+                    name: 'โฆษณาเสียง 60 วินาที',
+                    price: 2500,
+                    promotion: 'มี',
+                    promotionDetail: 'ซื้อ 10 ครั้ง แถม 1 ครั้ง',
+                    note: 'ออกอากาศช่วงเวลาใดก็ได้',
+                    created: new Date().toISOString()
+                },
+                {
+                    id: 'PROD-3',
+                    code: 'OL-001',
+                    type: 'online',
+                    name: 'โพสต์ Facebook',
+                    price: 5000,
+                    promotion: 'ไม่มี',
+                    note: 'พร้อมออกแบบกราฟิก',
+                    created: new Date().toISOString()
+                },
+                {
+                    id: 'PROD-4',
+                    code: 'Pr-001',
+                    type: 'production',
+                    name: 'ผลิตสปอตโฆษณา',
+                    price: 15000,
+                    promotion: 'ไม่มี',
+                    note: 'รวมเสียงพากย์และตัดต่อ',
+                    created: new Date().toISOString()
+                }
+            ];
+            
+            systemData.packages = [];
+            systemData.orders = [];
+            
+            saveData();
+            renderAll();
+        }
+        
+        function updateProductCodeNumbers() {
+            // Reset counters
+            productTypeCodes.onAir.nextNumber = 1;
+            productTypeCodes.online.nextNumber = 1;
+            productTypeCodes.production.nextNumber = 1;
+            
+            // Update counters based on existing products
+            systemData.products.forEach(product => {
+                if (product.code) {
+                    const prefix = product.code.split('-')[0];
+                    const number = parseInt(product.code.split('-')[1]);
+                    
+                    if (prefix === 'OA' && number >= productTypeCodes.onAir.nextNumber) {
+                        productTypeCodes.onAir.nextNumber = number + 1;
+                    } else if (prefix === 'OL' && number >= productTypeCodes.online.nextNumber) {
+                        productTypeCodes.online.nextNumber = number + 1;
+                    } else if (prefix === 'Pr' && number >= productTypeCodes.production.nextNumber) {
+                        productTypeCodes.production.nextNumber = number + 1;
+                    }
+                }
+            });
+        }
+        
+        function generateProductCode(type) {
+            if (!type || !productTypeCodes[type]) return '';
+            
+            const codeInfo = productTypeCodes[type];
+            const codeNumber = codeInfo.nextNumber.toString().padStart(3, '0');
+            const code = `${codeInfo.prefix}-${codeNumber}`;
+            
+            // Increment for next use
+            productTypeCodes[type].nextNumber++;
+            
+            return code;
+        }
+        
+        function saveData() {
+            systemData.settings.lastSave = new Date().toISOString();
+            localStorage.setItem('mcot_package_v4_data', JSON.stringify(systemData));
+            updateLastSaved();
+            updateBadges();
+            showNotification('บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
+        }
+        
+        function exportData() {
+            const dataStr = JSON.stringify(systemData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = `MCOT_Backup_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showNotification('ส่งออกข้อมูลสำเร็จ', 'success');
+        }
+        
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (confirm("คุณแน่ใจหรือไม่ว่าต้องการนำเข้าข้อมูล? ข้อมูลปัจจุบันจะถูกเขียนทับ")) {
+                        systemData = importedData;
+                        updateProductCodeNumbers();
+                        saveData();
+                        renderAll();
+                        showNotification('นำเข้าข้อมูลสำเร็จ', 'success');
+                    }
+                } catch (err) {
+                    showNotification('ไม่สามารถนำเข้าข้อมูลได้: ไฟล์ไม่ถูกต้อง', 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        
+        function clearData() {
+            if (confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้")) {
+                localStorage.removeItem('mcot_package_v4_data');
+                systemData = {
+                    customers: [],
+                    products: [],
+                    packages: [],
+                    orders: [],
+                    settings: {
+                        lastSave: null,
+                        version: "4.0"
+                    }
+                };
+                
+                // Reset product code counters
+                productTypeCodes.onAir.nextNumber = 1;
+                productTypeCodes.online.nextNumber = 1;
+                productTypeCodes.production.nextNumber = 1;
+                
+                renderAll();
+                showNotification('ล้างข้อมูลเรียบร้อยแล้ว', 'success');
+            }
+        }
+        
+        // ========== TAB MANAGEMENT ==========
+        function switchTab(tabName) {
+            // Close mobile menu on tab switch
+            closeMobileMenu();
+            
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-[#f9a826]', 'bg-white/15');
+                btn.classList.add('border-transparent');
+            });
+            
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            
+            // Activate selected button
+            const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('border-[#f9a826]', 'bg-white/15');
+                activeBtn.classList.remove('border-transparent');
+            }
+            
+            // Update page title
+            document.getElementById('page-title').textContent = getTabTitle(tabName);
+            
+            // Render specific content if needed
+            if (tabName === 'customers') renderCustomers();
+            if (tabName === 'products') {
+                setTimeout(() => {
+                    renderProducts();
+                    resetProductForm();
+                }, 100);
+            }
+            if (tabName === 'orders') {
+                setTimeout(() => {
+                    initializeOrdersTab();
+                }, 100);
+            }
+            if (tabName === 'quotations') renderQuotations();
+        }
+        
+        function getTabTitle(tabName) {
+            const titles = {
+                'customers': 'ลูกค้า',
+                'products': 'สินค้า',
+                'packages': 'แพ็กเกจ',
+                'orders': 'รายการสั่งซื้อ',
+                'quotations': 'ใบเสนอราคา'
+            };
+            return titles[tabName] || 'ระบบจัดการแพ็กเกจ';
+        }
+        
+        // ========== CUSTOMER MANAGEMENT ==========
+        function addCustomer(event) {
+            if (event) event.preventDefault();
+            
+            const company = document.getElementById('customer-company').value;
+            const name = document.getElementById('customer-name').value;
+            const phone = document.getElementById('customer-phone').value;
+            
+            if (!company || !name || !phone) {
+                showNotification('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน', 'error');
+                return;
+            }
+            
+            const newCustomer = {
+                id: `CUST-${Date.now()}`,
+                company: company,
+                type: document.getElementById('customer-type').value,
+                category: document.getElementById('customer-category').value,
+                address: document.getElementById('customer-address').value,
+                name: name,
+                phone: phone,
+                email: document.getElementById('customer-email').value,
+                potential: 'กลาง',
+                created: new Date().toISOString()
+            };
+            
+            systemData.customers.push(newCustomer);
+            saveData();
+            renderCustomers();
+            
+            // Reset form
+            document.getElementById('add-customer-form').reset();
+            showNotification('เพิ่มลูกค้าเรียบร้อยแล้ว', 'success');
+        }
+        
+        function deleteCustomer(id) {
+            if (confirm("ลบข้อมูลลูกค้านี้?")) {
+                systemData.customers = systemData.customers.filter(c => c.id !== id);
+                saveData();
+                renderCustomers();
+                showNotification('ลบลูกค้าเรียบร้อยแล้ว', 'success');
+            }
+        }
+        
+        function renderCustomers() {
+            const searchTerm = document.getElementById('customer-search').value.toLowerCase();
+            const filteredCustomers = systemData.customers.filter(customer => 
+                customer.company.toLowerCase().includes(searchTerm) || 
+                customer.name.toLowerCase().includes(searchTerm)
+            );
+            
+            const customerList = document.getElementById('customer-list');
+            customerList.innerHTML = '';
+            
+            if (filteredCustomers.length === 0) {
+                customerList.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-6 py-12 text-center text-slate-400">
+                            <div class="flex flex-col items-center gap-2">
+                                <i class="fas fa-search text-4xl opacity-20"></i>
+                                <p>ไม่พบข้อมูลลูกค้า</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                filteredCustomers.forEach((customer, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-slate-50 transition-colors';
+                    row.innerHTML = `
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <div class="font-bold text-slate-900">${customer.company}</div>
+                            <div class="text-sm text-slate-500">${customer.name}</div>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                                customer.type === 'ราชการ' ? 'bg-indigo-100 text-indigo-700' :
+                                customer.type === 'รัฐวิสาหกิจ' ? 'bg-cyan-100 text-cyan-700' :
+                                'bg-emerald-100 text-emerald-700'
+                            }">
+                                ${customer.type}
+                            </span>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <div class="flex flex-col gap-1">
+                                <div class="flex items-center gap-2 text-sm text-slate-600">
+                                    <i class="fas fa-phone text-slate-400 text-sm"></i> ${customer.phone}
+                                </div>
+                                ${customer.email ? `
+                                    <div class="flex items-center gap-2 text-sm text-slate-600">
+                                        <i class="fas fa-envelope text-slate-400 text-sm"></i> ${customer.email}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <button class="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteCustomer('${customer.id}')" class="p-2 text-slate-400 hover:text-red-600 transition-colors">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    customerList.appendChild(row);
+                });
+            }
+            
+            document.getElementById('customer-count').textContent = systemData.customers.length;
+            populateOrderCustomerSelect();
+            populateQuotationCustomerSelect();
+        }
+        
+        // ========== PRODUCT MANAGEMENT ==========
+        function updateProductCode() {
+            const productType = document.getElementById('product-type').value;
+            if (productType && productTypeCodes[productType]) {
+                const productCode = generateProductCode(productType);
+                document.getElementById('product-code').value = productCode;
+            } else {
+                document.getElementById('product-code').value = '';
+            }
+        }
+        
+        function addProduct(event) {
+            if (event) event.preventDefault();
+            
+            const name = document.getElementById('product-name').value;
+            const price = document.getElementById('product-price').value;
+            const type = document.getElementById('product-type').value;
+            const productId = document.getElementById('product-id').value;
+            
+            if (!name || !price || !type) {
+                showNotification('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน', 'error');
+                return;
+            }
+            
+            const productData = {
+                id: productId || `PROD-${Date.now()}`,
+                code: document.getElementById('product-code').value || generateProductCode(type),
+                name: name,
+                type: type,
+                price: parseFloat(price),
+                promotion: document.getElementById('product-promotion').value,
+                promotionDetail: document.getElementById('product-promotion').value === 'มี' ? 
+                    document.getElementById('product-promotion-detail').value : undefined,
+                note: document.getElementById('product-note').value,
+                created: productId ? systemData.products.find(p => p.id === productId)?.created : new Date().toISOString(),
+                updated: new Date().toISOString()
+            };
+            
+            if (productId) {
+                // Update existing product
+                const index = systemData.products.findIndex(p => p.id === productId);
+                if (index !== -1) {
+                    systemData.products[index] = productData;
+                    showNotification('แก้ไขสินค้าเรียบร้อยแล้ว', 'success');
+                }
+            } else {
+                // Add new product
+                systemData.products.push(productData);
+                showNotification('เพิ่มสินค้าเรียบร้อยแล้ว', 'success');
+            }
+            
+            saveData();
+            renderProducts();
+            resetProductForm();
+        }
+        
+        function editProduct(id) {
+            const product = systemData.products.find(p => p.id === id);
+            if (!product) return;
+            
+            // Set form values
+            document.getElementById('product-id').value = product.id;
+            document.getElementById('product-type').value = product.type;
+            document.getElementById('product-code').value = product.code;
+            document.getElementById('product-name').value = product.name;
+            document.getElementById('product-price').value = product.price;
+            document.getElementById('product-promotion').value = product.promotion || 'ไม่มี';
+            document.getElementById('product-promotion-detail').value = product.promotionDetail || '';
+            document.getElementById('product-note').value = product.note || '';
+            
+            // Show promotion detail if needed
+            const promotionDetailContainer = document.getElementById('promotion-detail-container');
+            if (promotionDetailContainer) {
+                promotionDetailContainer.classList.toggle('hidden', product.promotion !== 'มี');
+            }
+            
+            // Update form title and button
+            document.getElementById('product-form-title').textContent = 'แก้ไขสินค้า';
+            document.getElementById('product-form-icon').className = 'fas fa-edit text-xl';
+            document.getElementById('submit-product-btn').innerHTML = '<i class="fas fa-save"></i> บันทึกการแก้ไข';
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            
+            // Scroll to form
+            document.getElementById('product-form-container').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function deleteProduct(id) {
+            if (confirm('ต้องการลบสินค้านี้หรือไม่?')) {
+                systemData.products = systemData.products.filter(p => p.id !== id);
+                saveData();
+                renderProducts();
+                showNotification('ลบสินค้าเรียบร้อยแล้ว', 'success');
+            }
+        }
+        
+        function resetProductForm() {
+            document.getElementById('add-product-form').reset();
+            document.getElementById('product-id').value = '';
+            document.getElementById('product-code').value = '';
+            document.getElementById('promotion-detail-container').classList.add('hidden');
+            
+            // Reset form title and button
+            document.getElementById('product-form-title').textContent = 'เพิ่มสินค้าใหม่';
+            document.getElementById('product-form-icon').className = 'fas fa-plus text-xl';
+            document.getElementById('submit-product-btn').innerHTML = '<i class="fas fa-plus"></i> เพิ่มสินค้า';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            
+            // Reset product code
+            updateProductCode();
+        }
+        
+        function renderProducts() {
+            const searchTerm = document.getElementById('product-search').value.toLowerCase();
+            const filteredProducts = systemData.products.filter(product => 
+                product.name.toLowerCase().includes(searchTerm) ||
+                product.code.toLowerCase().includes(searchTerm)
+            );
+            
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+            
+            if (filteredProducts.length === 0) {
+                productList.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+                            <div class="flex flex-col items-center gap-2">
+                                <i class="fas fa-search text-4xl opacity-20"></i>
+                                <p>ไม่พบข้อมูลสินค้า</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                filteredProducts.forEach((product, index) => {
+                    const typeText = {
+                        'onAir': 'On Air',
+                        'online': 'Online',
+                        'production': 'Production'
+                    }[product.type] || product.type;
+                    
+                    const typeColor = {
+                        'onAir': 'blue',
+                        'online': 'emerald',
+                        'production': 'amber'
+                    }[product.type] || 'gray';
+                    
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-slate-50 transition-colors';
+                    row.innerHTML = `
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 text-center text-sm text-slate-500 font-bold">
+                            ${index + 1}
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <div class="font-mono font-bold text-${typeColor}-600">${product.code || 'ไม่มีรหัส'}</div>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <div class="font-bold text-slate-900">${product.name}</div>
+                            ${product.note ? `<div class="text-xs text-slate-500 mt-1">${product.note}</div>` : ''}
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <div class="flex items-center gap-2">
+                                <i class="fas ${
+                                    product.type === 'onAir' ? 'fa-broadcast-tower text-blue-500' :
+                                    product.type === 'online' ? 'fa-globe text-emerald-500' :
+                                    'fa-industry text-amber-500'
+                                }"></i>
+                                <span class="text-sm text-slate-600">${typeText}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <div class="font-bold text-blue-600">${product.price.toLocaleString()} ฿</div>
+                            ${product.promotion === 'มี' && product.promotionDetail ? 
+                                `<div class="text-xs text-emerald-600 font-bold">โปรโมชัน: ${product.promotionDetail}</div>` : ''}
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <button onclick="editProduct('${product.id}')" class="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteProduct('${product.id}')" class="p-2 text-slate-400 hover:text-red-600 transition-colors">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    productList.appendChild(row);
+                });
+            }
+            
+            document.getElementById('product-count').textContent = systemData.products.length;
+            populateOrderProductSelect();
+        }
+        
+        // ========== ORDER SECTION FUNCTIONS ==========
+        function initializeOrdersTab() {
+            if (!document.getElementById('orders-tab')) return;
+            
+            generateTimeSlots();
+            generateWeekdays();
+            populateOrderCustomerSelect();
+            populateOrderProductSelect();
+            updateOrderCalculation();
+            
+            // Set initial dates
+            const today = new Date();
+            const endDate = new Date();
+            endDate.setDate(today.getDate() + 30);
+            
+            document.getElementById('order-start-date').value = today.toISOString().split('T')[0];
+            document.getElementById('order-end-date').value = endDate.toISOString().split('T')[0];
+            
+            currentOrder.startDate = today.toISOString().split('T')[0];
+            currentOrder.endDate = endDate.toISOString().split('T')[0];
+            
+            setupOrderEventListeners();
+            updateOrdersTable();
+            updateCampaignTotal();
+        }
+        
+        function setupOrderEventListeners() {
+            // Customer select
+            const customerSelect = document.getElementById('order-customer');
+            if (customerSelect) {
+                customerSelect.addEventListener('change', function(e) {
+                    currentOrder.selectedCustomerId = e.target.value;
+                    updateCustomerInfo();
+                    updateOrderCalculation();
+                });
+            }
+            
+            // Product select
+            const productSelect = document.getElementById('order-product');
+            if (productSelect) {
+                productSelect.addEventListener('change', function(e) {
+                    currentOrder.selectedItemId = e.target.value;
+                    updateOrderCalculation();
+                });
+            }
+            
+            // Payment type
+            const paymentType = document.getElementById('order-payment-type');
+            if (paymentType) {
+                paymentType.addEventListener('change', function(e) {
+                    currentOrder.paymentType = e.target.value;
+                    updateOrderCalculation();
+                });
+            }
+            
+            // Start date
+            const startDate = document.getElementById('order-start-date');
+            if (startDate) {
+                startDate.addEventListener('change', function(e) {
+                    currentOrder.startDate = e.target.value;
+                    updateOrderCalculation();
+                });
+            }
+            
+            // End date
+            const endDate = document.getElementById('order-end-date');
+            if (endDate) {
+                endDate.addEventListener('change', function(e) {
+                    currentOrder.endDate = e.target.value;
+                    updateOrderCalculation();
+                });
+            }
+            
+            // Order note
+            const orderNote = document.getElementById('order-note');
+            if (orderNote) {
+                orderNote.addEventListener('input', function(e) {
+                    currentOrder.note = e.target.value;
+                });
+            }
+        }
+        
+        function generateTimeSlots() {
+            const container = document.getElementById('time-slots-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            const allSlots = TIME_SLOTS.flatMap(p => p.slots);
+            
+            allSlots.forEach(slot => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'time-slot-btn py-2 px-1 text-[10px] sm:text-[11px] font-bold rounded-lg border bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300';
+                button.textContent = slot;
+                button.dataset.slot = slot;
+                
+                button.addEventListener('click', function() {
+                    const slot = this.dataset.slot;
+                    if (currentOrder.selectedSlots.includes(slot)) {
+                        currentOrder.selectedSlots = currentOrder.selectedSlots.filter(s => s !== slot);
+                        this.classList.remove('selected', 'bg-blue-600', 'border-blue-600', 'text-white', 'shadow-md', 'scale-[1.02]');
+                    } else {
+                        currentOrder.selectedSlots.push(slot);
+                        this.classList.add('selected', 'bg-blue-600', 'border-blue-600', 'text-white', 'shadow-md', 'scale-[1.02]');
+                    }
+                    updateSelectedSlotsCount();
+                    updateOrderCalculation();
+                });
+                
+                container.appendChild(button);
+            });
+            
+            updateSelectedSlotsCount();
+        }
+        
+        function generateWeekdays() {
+            const container = document.getElementById('weekdays-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            WEEKDAYS.forEach(day => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                const isSelected = currentOrder.selectedDays.includes(day.value);
+                button.className = `weekday-btn w-8 h-8 lg:w-9 lg:h-9 flex items-center justify-center rounded-full text-xs font-bold transition-all border ${
+                    isSelected ? 'bg-blue-600 border-blue-600 text-white selected' : 'bg-slate-100 border-slate-200 text-slate-400'
+                }`;
+                button.textContent = day.label;
+                button.dataset.day = day.value;
+                
+                button.addEventListener('click', function() {
+                    const dayValue = parseInt(this.dataset.day);
+                    if (currentOrder.selectedDays.includes(dayValue)) {
+                        currentOrder.selectedDays = currentOrder.selectedDays.filter(d => d !== dayValue);
+                        this.classList.remove('bg-blue-600', 'border-blue-600', 'text-white', 'selected');
+                        this.classList.add('bg-slate-100', 'border-slate-200', 'text-slate-400');
+                    } else {
+                        currentOrder.selectedDays.push(dayValue);
+                        this.classList.remove('bg-slate-100', 'border-slate-200', 'text-slate-400');
+                        this.classList.add('bg-blue-600', 'border-blue-600', 'text-white', 'selected');
+                    }
+                    updateOrderCalculation();
+                });
+                
+                container.appendChild(button);
+            });
+        }
+        
+        function populateOrderCustomerSelect() {
+            const select = document.getElementById('order-customer');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">-- เลือกลูกค้า --</option>';
+            
+            systemData.customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.id;
+                option.textContent = `${customer.company} (${customer.name})`;
+                select.appendChild(option);
+            });
+        }
+        
+        function populateOrderProductSelect() {
+            const select = document.getElementById('order-product');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">-- เลือกรายการ --</option>';
+            
+            let availableItems = [];
+            
+            if (currentOrder.orderType === 'Produce') {
+                availableItems = systemData.products.filter(p => p.type !== 'production');
+            } else if (currentOrder.orderType === 'Package') {
+                availableItems = systemData.packages;
+            } else {
+                availableItems = systemData.products.filter(p => p.type === 'production');
+            }
+            
+            availableItems.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                const price = item.price || item.totalPrice || 0;
+                option.textContent = `${item.code ? item.code + ' - ' : ''}${item.name} (${price.toLocaleString()} ฿)`;
+                select.appendChild(option);
+            });
+        }
+        
+        function setOrderType(type) {
+            currentOrder.orderType = type;
+            currentOrder.selectedItemId = '';
+            
+            // Update button styles
+            document.querySelectorAll('.order-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeBtn = document.getElementById(`order-type-${type.toLowerCase()}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+            
+            populateOrderProductSelect();
+            updateOrderCalculation();
+        }
+        
+        function updateCustomerInfo() {
+            const display = document.getElementById('customer-type-display');
+            const typeText = document.getElementById('selected-customer-type');
+            
+            const selectedCustomer = systemData.customers.find(c => c.id === currentOrder.selectedCustomerId);
+            
+            if (selectedCustomer) {
+                display.classList.remove('hidden');
+                typeText.textContent = selectedCustomer.type;
+            } else {
+                display.classList.add('hidden');
+            }
+        }
+        
+        function updateSelectedSlotsCount() {
+            const countElement = document.getElementById('selected-slots-count');
+            if (countElement) {
+                countElement.textContent = `เลือกแล้ว: ${currentOrder.selectedSlots.length} ครั้ง/วัน`;
+            }
+        }
+        
+        function calculateOrder() {
+            const selectedCustomer = systemData.customers.find(c => c.id === currentOrder.selectedCustomerId);
+            let selectedItem = null;
+            
+            if (currentOrder.orderType === 'Package') {
+                selectedItem = systemData.packages.find(p => p.id === currentOrder.selectedItemId);
+            } else {
+                selectedItem = systemData.products.find(p => p.id === currentOrder.selectedItemId);
+            }
+            
+            if (!selectedItem || !currentOrder.startDate || !currentOrder.endDate) return null;
+            
+            const start = new Date(currentOrder.startDate);
+            const end = new Date(currentOrder.endDate);
+            if (end < start) return null;
+            
+            // Calculate total broadcast days
+            let totalDays = 0;
+            const current = new Date(start);
+            while (current <= end) {
+                if (currentOrder.selectedDays.includes(current.getDay())) {
+                    totalDays++;
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            
+            const unitPrice = selectedItem.price || selectedItem.totalPrice || 0;
+            const timesPerDay = currentOrder.selectedSlots.length || 1;
+            const baseTotal = unitPrice * timesPerDay * totalDays;
+            
+            // Discount Logic
+            let conditionDiscountPercent = 0;
+            let conditionDiscountReason = '';
+            const diffTime = Math.abs(end.getTime() - start.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            const totalMonths = diffDays / 30;
+            
+            const activeType = selectedCustomer?.type || 'เอกชน';
+            
+            if (activeType === 'ราชการ') {
+                conditionDiscountPercent = 40;
+                conditionDiscountReason = 'ส่วนลดสำหรับลูกค้าราชการ';
+            } else {
+                // Private or State Enterprise follow duration rules
+                if (totalMonths >= 6) {
+                    conditionDiscountPercent = 30;
+                    conditionDiscountReason = 'ส่วนลดระยะยาว (6 เดือนขึ้นไป)';
+                } else if (totalMonths >= 3) {
+                    conditionDiscountPercent = 25;
+                    conditionDiscountReason = 'ส่วนลดระยะกลาง (3-6 เดือน)';
+                } else if (totalMonths >= 2) {
+                    conditionDiscountPercent = 20;
+                    conditionDiscountReason = 'ส่วนลดระยะสั้น (2-3 เดือน)';
+                }
+            }
+            
+            const paymentDiscountPercent = currentOrder.paymentType === 'ก่อนออกอากาศ' ? 5 : 0;
+            const paymentDiscountReason = paymentDiscountPercent > 0 ? 'ส่วนลดจ่ายล่วงหน้า' : '';
+            
+            const conditionDiscountAmount = baseTotal * (conditionDiscountPercent / 100);
+            const paymentDiscountAmount = (baseTotal - conditionDiscountAmount) * (paymentDiscountPercent / 100);
+            const totalDiscountAmount = conditionDiscountAmount + paymentDiscountAmount;
+            
+            const priceAfterDiscount = baseTotal - totalDiscountAmount;
+            const vatAmount = priceAfterDiscount * 0.07;
+            const netTotal = priceAfterDiscount + vatAmount;
+            
+            return {
+                totalDays,
+                timesPerDay,
+                baseTotal,
+                conditionDiscountPercent,
+                conditionDiscountReason,
+                paymentDiscountPercent,
+                paymentDiscountReason,
+                totalDiscountAmount,
+                priceAfterDiscount,
+                vatAmount,
+                netTotal,
+                totalMonths
+            };
+        }
+        
+        function updateOrderCalculation() {
+            const result = calculateOrder();
+            const summaryElement = document.getElementById('calculation-summary');
+            
+            if (!summaryElement) return;
+            
+            if (!result) {
+                summaryElement.innerHTML = `
+                    <div class="py-8 lg:py-12 flex flex-col items-center justify-center text-slate-300 gap-3 text-center">
+                        <i class="fas fa-calculator text-3xl lg:text-4xl opacity-20"></i>
+                        <p class="text-xs">ระบุข้อมูลลูกค้า วันออกอากาศ<br/>และเลือกสินค้าเพื่อคำนวณราคา</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Create discount explanation
+            let discountExplanation = '';
+            if (result.conditionDiscountPercent > 0) {
+                discountExplanation += `<div class="text-xs text-emerald-700 bg-emerald-50 p-2 rounded-lg mb-2">${result.conditionDiscountReason}: ${result.conditionDiscountPercent}%</div>`;
+            }
+            if (result.paymentDiscountPercent > 0) {
+                discountExplanation += `<div class="text-xs text-blue-700 bg-blue-50 p-2 rounded-lg">${result.paymentDiscountReason}: ${result.paymentDiscountPercent}%</div>`;
+            }
+            
+            summaryElement.innerHTML = `
+                <div class="space-y-3 pb-4 border-b border-slate-100">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">จำนวนวันออกอากาศ:</span>
+                        <span class="font-bold">${result.totalDays} วัน</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">จำนวนครั้งต่อวัน:</span>
+                        <span class="font-bold text-blue-600">${result.timesPerDay} ครั้ง</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">ระยะเวลาแคมเปญ:</span>
+                        <span class="font-bold text-slate-900">${result.totalMonths.toFixed(1)} เดือน</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">ราคาก่อนหักส่วนลด:</span>
+                        <span class="font-bold">${result.baseTotal.toLocaleString()} ฿</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3 pb-4 border-b border-slate-100">
+                    ${discountExplanation}
+                    <div class="flex justify-between text-sm text-emerald-600">
+                        <span class="flex items-center gap-1 font-bold">
+                            <i class="fas fa-tag text-xs"></i> ส่วนลดเงื่อนไข (${result.conditionDiscountPercent}%):
+                        </span>
+                        <span class="font-bold">- ${(result.baseTotal * result.conditionDiscountPercent / 100).toLocaleString()} ฿</span>
+                    </div>
+                    ${result.paymentDiscountPercent > 0 ? `
+                    <div class="flex justify-between text-sm text-emerald-600">
+                        <span class="flex items-center gap-1 font-bold">
+                            <i class="fas fa-credit-card text-xs"></i> ส่วนลดจ่ายล่วงหน้า (${result.paymentDiscountPercent}%):
+                        </span>
+                        <span class="font-bold">- ${((result.baseTotal - (result.baseTotal * result.conditionDiscountPercent / 100)) * result.paymentDiscountPercent / 100).toLocaleString()} ฿</span>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <div class="space-y-2 pt-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">ราคาหลังส่วนลด:</span>
+                        <span class="font-bold text-slate-900">${result.priceAfterDiscount.toLocaleString()} ฿</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">VAT (7%):</span>
+                        <span class="font-bold text-slate-900">${result.vatAmount.toLocaleString()} ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-lg font-bold text-blue-900">ยอดสุทธิ:</span>
+                        <span class="text-2xl font-black text-blue-600">${result.netTotal.toLocaleString()} ฿</span>
+                    </div>
+                </div>
+
+                <button onclick="addOrderToCampaign()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 lg:py-4 rounded-lg lg:rounded-xl font-bold shadow-lg hover:shadow-blue-200 transition-all flex items-center justify-center gap-2 mt-4">
+                    <i class="fas fa-plus"></i> เพิ่มรายการเข้าแคมเปญ
+                </button>
+            `;
+        }
+        
+        function addOrderToCampaign() {
+            const selectedCustomer = systemData.customers.find(c => c.id === currentOrder.selectedCustomerId);
+            let selectedItem = null;
+            
+            if (currentOrder.orderType === 'Package') {
+                selectedItem = systemData.packages.find(p => p.id === currentOrder.selectedItemId);
+            } else {
+                selectedItem = systemData.products.find(p => p.id === currentOrder.selectedItemId);
+            }
+            
+            if (!selectedCustomer || !selectedItem) {
+                alert('กรุณาเลือกลูกค้าและสินค้าก่อนเพิ่มรายการ');
+                return;
+            }
+            
+            const calculation = calculateOrder();
+            if (!calculation) return;
+            
+            const newOrder = {
+                id: `ORD-${Date.now()}`,
+                customerId: currentOrder.selectedCustomerId,
+                customerName: selectedCustomer.company,
+                productType: currentOrder.orderType,
+                productId: selectedItem.id,
+                productCode: selectedItem.code || '',
+                productName: selectedItem.name,
+                unitPrice: selectedItem.price || selectedItem.totalPrice || 0,
+                timeSlots: [...currentOrder.selectedSlots],
+                startDate: currentOrder.startDate,
+                endDate: currentOrder.endDate,
+                daysOfWeek: [...currentOrder.selectedDays],
+                timesPerDay: calculation.timesPerDay,
+                totalDays: calculation.totalDays,
+                totalPrice: calculation.baseTotal,
+                conditionDiscountPercent: calculation.conditionDiscountPercent,
+                conditionDiscountReason: calculation.conditionDiscountReason,
+                paymentDiscountPercent: calculation.paymentDiscountPercent,
+                paymentDiscountReason: calculation.paymentDiscountReason,
+                totalDiscountAmount: calculation.totalDiscountAmount,
+                priceAfterDiscount: calculation.priceAfterDiscount,
+                vatAmount: calculation.vatAmount,
+                netTotal: calculation.netTotal,
+                paymentType: currentOrder.paymentType,
+                note: currentOrder.note,
+                created: new Date().toISOString()
+            };
+            
+            systemData.orders.push(newOrder);
+            saveData();
+            updateOrdersTable();
+            updateCampaignTotal();
+            resetOrderForm();
+            
+            showNotification('เพิ่มรายการสั่งซื้อเรียบร้อยแล้ว', 'success');
+        }
+        
+        function deleteOrder(orderId) {
+            if (confirm('ต้องการลบรายการสั่งซื้อนี้หรือไม่?')) {
+                systemData.orders = systemData.orders.filter(o => o.id !== orderId);
+                saveData();
+                updateOrdersTable();
+                updateCampaignTotal();
+                showNotification('ลบรายการสั่งซื้อเรียบร้อยแล้ว', 'success');
+            }
+        }
+        
+        function updateOrdersTable() {
+            const tbody = document.getElementById('orders-table-body');
+            const countElement = document.getElementById('orders-count');
+            
+            if (!tbody || !countElement) return;
+            
+            countElement.textContent = systemData.orders.length;
+            
+            if (systemData.orders.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-400">ยังไม่มีรายการสั่งซื้อในแคมเปญนี้</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            systemData.orders.forEach(order => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50 transition-colors';
+                row.innerHTML = `
+                    <td class="px-4 lg:px-6 py-3 lg:py-4">
+                        <div class="font-bold text-slate-800">${order.productCode ? order.productCode + ' - ' : ''}${order.productName}</div>
+                        <div class="text-[10px] text-slate-400 mt-1 font-mono">
+                            ${formatDate(order.startDate)} - ${formatDate(order.endDate)}
+                        </div>
+                        ${order.note ? `<div class="text-xs text-blue-600 mt-1">* ${order.note}</div>` : ''}
+                    </td>
+                    <td class="px-4 lg:px-6 py-3 lg:py-4 text-center font-medium">${order.totalDays} วัน</td>
+                    <td class="px-4 lg:px-6 py-3 lg:py-4 text-center font-medium">${order.timesPerDay} ครั้ง/วัน</td>
+                    <td class="px-4 lg:px-6 py-3 lg:py-4 text-right">
+                        <div class="text-emerald-600 font-bold">- ${order.totalDiscountAmount.toLocaleString()}</div>
+                        <div class="text-[10px] text-slate-500 mt-1">
+                            ${order.conditionDiscountReason ? order.conditionDiscountReason + (order.paymentDiscountReason ? ' + ' + order.paymentDiscountReason : '') : ''}
+                        </div>
+                    </td>
+                    <td class="px-4 lg:px-6 py-3 lg:py-4 text-right font-black text-blue-600">${order.netTotal.toLocaleString()}</td>
+                    <td class="px-4 lg:px-6 py-3 lg:py-4 text-center">
+                        <button onclick="deleteOrder('${order.id}')" class="p-2 text-slate-300 hover:text-red-500 transition-colors">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateCampaignTotal() {
+            const totalCampaign = systemData.orders.reduce((acc, curr) => ({
+                base: acc.base + curr.totalPrice,
+                discount: acc.discount + curr.totalDiscountAmount,
+                net: acc.net + curr.netTotal
+            }), { base: 0, discount: 0, net: 0 });
+            
+            const totalElement = document.getElementById('campaign-total');
+            const discountElement = document.getElementById('campaign-discount');
+            const netElement = document.getElementById('campaign-net');
+            
+            if (totalElement) totalElement.textContent = `${totalCampaign.base.toLocaleString()} ฿`;
+            if (discountElement) discountElement.textContent = `- ${totalCampaign.discount.toLocaleString()} ฿`;
+            if (netElement) netElement.textContent = `${totalCampaign.net.toLocaleString()} ฿`;
+        }
+        
+        function resetOrderForm() {
+            // Reset form fields but keep customer selection
+            currentOrder.selectedItemId = '';
+            currentOrder.selectedSlots = [];
+            currentOrder.note = '';
+            
+            // Reset UI
+            const productSelect = document.getElementById('order-product');
+            const orderNote = document.getElementById('order-note');
+            
+            if (productSelect) productSelect.value = '';
+            if (orderNote) orderNote.value = '';
+            
+            // Reset time slot buttons
+            document.querySelectorAll('.time-slot-btn').forEach(btn => {
+                btn.classList.remove('selected', 'bg-blue-600', 'border-blue-600', 'text-white', 'shadow-md', 'scale-[1.02]');
+                btn.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-600');
+            });
+            
+            updateSelectedSlotsCount();
+            updateOrderCalculation();
+        }
+        
+        // ========== QUOTATION MANAGEMENT ==========
+        function populateQuotationCustomerSelect() {
+            const select = document.getElementById('quotation-customer');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">-- เลือกลูกค้า --</option>';
+            
+            systemData.customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.id;
+                option.textContent = customer.company;
+                select.appendChild(option);
+            });
+        }
+        
+        function loadCustomerQuotation() {
+            const customerId = document.getElementById('quotation-customer').value;
+            
+            if (!customerId) {
+                document.getElementById('quotation-preview').classList.add('hidden');
+                document.getElementById('quotation-empty').classList.remove('hidden');
+                return;
+            }
+            
+            const customer = systemData.customers.find(c => c.id === customerId);
+            const customerOrders = systemData.orders.filter(o => o.customerId === customerId);
+            
+            if (!customer || customerOrders.length === 0) {
+                document.getElementById('quotation-preview').classList.add('hidden');
+                document.getElementById('quotation-empty').classList.remove('hidden');
+                return;
+            }
+            
+            // Calculate totals
+            let beforeVat = 0;
+            let vat = 0;
+            let total = 0;
+            
+            customerOrders.forEach(order => {
+                beforeVat += (order.netTotal - order.vatAmount);
+                vat += order.vatAmount;
+                total += order.netTotal;
+            });
+            
+            // Update customer info
+            document.getElementById('quotation-company').textContent = customer.company;
+            document.getElementById('quotation-address').textContent = customer.address || '-';
+            document.getElementById('quotation-phone').textContent = customer.phone || '-';
+            document.getElementById('quotation-date').textContent = new Date().toLocaleDateString('th-TH', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            });
+            document.getElementById('quotation-staff-name').textContent = document.getElementById('staff-name').value;
+            
+            // Update items
+            const itemsContainer = document.getElementById('quotation-items');
+            itemsContainer.innerHTML = '';
+            
+            customerOrders.forEach((order, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-200';
+                row.innerHTML = `
+                    <td class="p-2 lg:p-3">
+                        <p class="font-bold text-slate-900">${index + 1}. ${order.productCode ? order.productCode + ' - ' : ''}${order.productName}</p>
+                        ${order.note ? `<p class="text-[10px] text-blue-600 mt-0.5">* ${order.note}</p>` : ''}
+                    </td>
+                    <td class="p-2 lg:p-3 text-center font-bold">${order.totalDays}</td>
+                    <td class="p-2 lg:p-3 text-center font-bold">${order.timesPerDay}</td>
+                    <td class="p-2 lg:p-3 text-right font-mono font-bold">${(order.totalDays * order.timesPerDay).toLocaleString()}</td>
+                    <td class="p-2 lg:p-3 text-right font-black">${(order.netTotal - order.vatAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                `;
+                itemsContainer.appendChild(row);
+            });
+            
+            // Update totals
+            document.getElementById('quotation-before-vat').textContent = `${beforeVat.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`;
+            document.getElementById('quotation-vat').textContent = `${vat.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`;
+            document.getElementById('quotation-total').textContent = `${total.toLocaleString(undefined, { minimumFractionDigits: 2 })} บาท`;
+            
+            // Show preview
+            document.getElementById('quotation-preview').classList.remove('hidden');
+            document.getElementById('quotation-empty').classList.add('hidden');
+        }
+        
+        function printQuotation() {
+            const customerId = document.getElementById('quotation-customer').value;
+            if (!customerId) {
+                showNotification('กรุณาเลือกลูกค้าก่อนพิมพ์', 'error');
+                return;
+            }
+            
+            window.print();
+        }
+        
+        function renderQuotations() {
+            populateQuotationCustomerSelect();
+        }
+        
+        // ========== UTILITY FUNCTIONS ==========
+        function setupEventListeners() {
+            // Customer form
+            const addCustomerForm = document.getElementById('add-customer-form');
+            if (addCustomerForm) {
+                addCustomerForm.addEventListener('submit', addCustomer);
+            }
+            
+            const customerSearch = document.getElementById('customer-search');
+            if (customerSearch) {
+                customerSearch.addEventListener('input', renderCustomers);
+            }
+            
+            // Product form
+            const addProductForm = document.getElementById('add-product-form');
+            if (addProductForm) {
+                addProductForm.addEventListener('submit', addProduct);
+            }
+            
+            const productSearch = document.getElementById('product-search');
+            if (productSearch) {
+                productSearch.addEventListener('input', renderProducts);
+            }
+            
+            const productPromotion = document.getElementById('product-promotion');
+            if (productPromotion) {
+                productPromotion.addEventListener('change', function() {
+                    const promotionDetailContainer = document.getElementById('promotion-detail-container');
+                    if (promotionDetailContainer) {
+                        promotionDetailContainer.classList.toggle('hidden', this.value !== 'มี');
+                    }
+                });
+            }
+            
+            // Quotation
+            const quotationCustomer = document.getElementById('quotation-customer');
+            if (quotationCustomer) {
+                quotationCustomer.addEventListener('change', loadCustomerQuotation);
+            }
+            
+            const staffName = document.getElementById('staff-name');
+            const staffPhone = document.getElementById('staff-phone');
+            
+            if (staffName) staffName.addEventListener('input', loadCustomerQuotation);
+            if (staffPhone) staffPhone.addEventListener('input', loadCustomerQuotation);
+            
+            // Window resize for mobile menu
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 1024) {
+                    closeMobileMenu();
+                }
+            });
+        }
+        
+        function renderAll() {
+            renderCustomers();
+            renderProducts();
+            renderQuotations();
+            updateOrdersTable();
+            updateCampaignTotal();
+        }
+        
+        function updateBadges() {
+            // Customer badge
+            const customerBadge = document.getElementById('customer-badge');
+            if (customerBadge) {
+                customerBadge.textContent = systemData.customers.length;
+                customerBadge.classList.toggle('hidden', systemData.customers.length === 0);
+            }
+            
+            // Order badge
+            const orderBadge = document.getElementById('order-badge');
+            if (orderBadge) {
+                orderBadge.textContent = systemData.orders.length;
+                orderBadge.classList.toggle('hidden', systemData.orders.length === 0);
+            }
+        }
+        
+        function updateLastSaved() {
+            const lastSavedEl = document.getElementById('last-saved');
+            if (systemData.settings.lastSave) {
+                const date = new Date(systemData.settings.lastSave);
+                lastSavedEl.textContent = `${date.toLocaleDateString('th-TH')} ${date.toLocaleTimeString('th-TH')}`;
+            } else {
+                lastSavedEl.textContent = 'ไม่เคยบันทึก';
+            }
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH');
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Remove existing notification
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // Create notification
+            const notification = document.createElement('div');
+            notification.className = `notification fixed top-4 right-4 px-4 lg:px-6 py-2 lg:py-3 rounded-lg shadow-lg text-white font-medium z-50 animate-fadeIn ${
+                type === 'success' ? 'bg-emerald-500' :
+                type === 'error' ? 'bg-red-500' :
+                'bg-blue-500'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        function showPackageForm() {
+            alert('ฟีเจอร์แพ็กเกจอยู่ระหว่างการพัฒนา\n\nแผนพัฒนาเวอร์ชั่นต่อไป:\n1. การสร้างแพ็กเกจสินค้าแบบผสม\n2. ระบบจัดการแพ็กเกจแบบครบวงจร\n3. ฟีเจอร์การคำนวณราคาแพ็กเกจอัตโนมัติ');
+        }
+    </script>
+</body>
+</html>
